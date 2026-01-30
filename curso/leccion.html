@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Evaluación Académica — Zaz English Course</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #fcfaf7; color: #1c1c1c; margin: 0; }
+        h1, h2, .serif { font-family: 'Playfair Display', serif; }
+        .bg-navy { background-color: #0a192f; }
+        .gold-accent { color: #b08d57; }
+        .quiz-container { max-width: 700px; margin: 0 auto; }
+        .question-card { background: white; border: 1px solid #e7e5e4; padding: 2rem; border-radius: 4px; margin-bottom: 2rem; }
+        .option-btn { width: 100%; text-align: left; padding: 1rem 1.5rem; margin: 0.5rem 0; border: 2px solid #e7e5e4; background: white; border-radius: 4px; cursor: pointer; transition: all 0.2s ease; font-size: 1.1rem; }
+        .option-btn:hover { border-color: #b08d57; background: #fcfaf7; }
+        .option-btn.selected { border-color: #0a192f; background: #f8f9fa; }
+        .option-btn.correct { border-color: #16a34a; background: #f0fdf4; color: #166534; }
+        .option-btn.incorrect { border-color: #dc2626; background: #fef2f2; color: #991b1b; }
+        .option-btn:disabled { cursor: not-allowed; }
+        .submit-btn { background: #0a192f; color: white; padding: 1rem 2.5rem; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; letter-spacing: 0.05em; transition: all 0.2s ease; text-transform: uppercase; font-size: 0.875rem; }
+        .submit-btn:hover { background: #b08d57; }
+        .submit-btn:disabled { background: #d1d5db; cursor: not-allowed; }
+        .results-card { background: white; border: 2px solid #b08d57; padding: 3rem; border-radius: 4px; text-align: center; }
+        .score-display { font-size: 4rem; font-weight: bold; color: #b08d57; font-family: 'Playfair Display', serif; font-style: italic; }
+        .back-link { transition: all 0.3s ease; letter-spacing: 0.1em; }
+        .back-link:hover { color: #b08d57 !important; padding-left: 5px; }
+        .feedback { margin-top: 0.5rem; font-size: 0.9rem; font-weight: 600; }
+        .feedback.correct { color: #16a34a; }
+        .feedback.incorrect { color: #dc2626; }
+        .progress-bar-container { margin-top: 3rem; }
+        .progress-bar { height: 4px; background: #e7e5e4; border-radius: 2px; overflow: hidden; }
+        .progress-fill { height: 100%; background: #b08d57; transition: width 0.3s ease; }
+    </style>
+</head>
+<body class="antialiased min-h-screen flex flex-col">
+    <div class="bg-navy py-1.5 text-center"><p class="text-[9px] tracking-[0.4em] uppercase text-yellow-100/80 font-medium">Portal de Estudiantes</p></div>
+    
+    <nav class="py-6 px-6 md:px-12 flex justify-between items-center border-b border-stone-200 bg-white">
+        <div class="text-xl md:text-2xl font-bold tracking-widest uppercase serif italic text-slate-800">
+            Zaz English Course
+        </div>
+        <div class="text-right">
+            <p class="text-[8px] uppercase tracking-[0.3em] font-bold text-slate-400 leading-none mb-1">Established</p>
+            <p class="serif italic text-xs gold-accent">MMXXVI</p>
+        </div>
+    </nav>
+
+    <main class="max-w-4xl mx-auto w-full px-6 py-12 flex-grow">
+        <div class="mb-10">
+            <a href="../curso.html" class="back-link text-[10px] uppercase font-bold text-slate-400 flex items-center gap-2">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+                Volver a la Malla Curricular
+            </a>
+        </div>
+        <header class="mb-20">
+            <span id="lessonTitle" class="text-[10px] uppercase tracking-[0.4em] gold-accent font-bold mb-3 block">Cargando Lección...</span>
+        </header>
+        
+        <div id="quizContainer" class="quiz-container">
+            <div id="questionsWrapper"></div>
+            <div id="navigationControls">
+                <div class="progress-bar-container">
+                    <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width: 0%"></div></div>
+                    <div class="text-center mt-2 mb-6"><span class="text-sm uppercase tracking-wider text-slate-500" id="questionCounter">Pregunta 0 respondidas</span></div>
+                </div>
+                <div class="text-center mt-8"><button id="submitBtn" class="submit-btn" disabled>Calificar Evaluación</button></div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="border-t border-stone-200 py-20 bg-white text-center mt-20">
+        <div class="serif italic text-2xl text-slate-500 mb-2 font-medium">Zaz English Course</div>
+        <p class="text-[10px] uppercase tracking-[0.3em] text-slate-400">© 2026 Zaz English Course • All Rights Reserved</p>
+    </footer>
+
+    <script>
+        let currentQuestions = [];
+        let userAnswers = [];
+        let isSubmitted = false;
+
+        async function loadLesson() {
+            const params = new URLSearchParams(window.location.search);
+            const lessonId = params.get('id');
+            if (!lessonId) return;
+
+            const displayTitle = lessonId.replace('leccion', 'Lección ').replace('.', '.');
+            document.getElementById('lessonTitle').textContent = `Malla Curricular • ${displayTitle}`;
+
+            try {
+                const response = await fetch('../data/questions.json');
+                const allData = await response.json();
+                currentQuestions = allData[lessonId];
+                userAnswers = new Array(currentQuestions.length).fill(null);
+                renderQuestions();
+            } catch (e) {
+                console.error("Error loading questions:", e);
+            }
+        }
+
+        function renderQuestions() {
+            const wrapper = document.getElementById('questionsWrapper');
+            wrapper.innerHTML = '';
+            currentQuestions.forEach((q, index) => {
+                const card = document.createElement('div');
+                card.className = 'question-card';
+                card.innerHTML = `
+                    <h3 class="text-xl font-semibold mb-4">${index + 1}. ${q.question}</h3>
+                    <div class="options">
+                        ${q.options.map((option, optIndex) => `
+                            <button class="option-btn" data-question="${index}" data-option="${optIndex}" onclick="selectOption(${index}, ${optIndex})">
+                                ${String.fromCharCode(65 + optIndex)}) ${option}
+                            </button>
+                        `).join('')}
+                    </div>
+                    <div class="feedback" id="feedback-${index}"></div>`;
+                wrapper.appendChild(card);
+            });
+            updateProgress();
+        }
+
+        function selectOption(qIdx, oIdx) {
+            if (isSubmitted) return;
+            userAnswers[qIdx] = oIdx;
+            const buttons = document.querySelectorAll(`[data-question="${qIdx}"]`);
+            buttons.forEach(btn => btn.classList.remove('selected'));
+            buttons[oIdx].classList.add('selected');
+            updateProgress();
+            document.getElementById('submitBtn').disabled = !userAnswers.every(a => a !== null);
+        }
+
+        function updateProgress() {
+            const answered = userAnswers.filter(a => a !== null).length;
+            const percentage = (answered / currentQuestions.length) * 100;
+            document.getElementById('progressFill').style.width = percentage + '%';
+            document.getElementById('questionCounter').textContent = `Pregunta ${answered} de ${currentQuestions.length} respondidas`;
+        }
+
+        function submitQuiz() {
+            if (isSubmitted) return;
+            isSubmitted = true;
+            let correctCount = 0;
+
+            currentQuestions.forEach((q, index) => {
+                const buttons = document.querySelectorAll(`[data-question="${index}"]`);
+                const feedback = document.getElementById(`feedback-${index}`);
+                buttons.forEach((btn, optIndex) => {
+                    btn.disabled = true;
+                    if (optIndex === q.correct) btn.classList.add('correct');
+                    if (optIndex === userAnswers[index] && userAnswers[index] !== q.correct) btn.classList.add('incorrect');
+                });
+
+                if (userAnswers[index] === q.correct) {
+                    correctCount++;
+                    feedback.className = 'feedback correct';
+                    feedback.textContent = '✓ Correcto';
+                } else {
+                    feedback.className = 'feedback incorrect';
+                    feedback.textContent = `✗ Incorrecto. La respuesta correcta es: ${q.options[q.correct]}`;
+                }
+            });
+
+            showResults(correctCount);
+        }
+
+        function showResults(correct) {
+            document.getElementById('navigationControls').style.display = 'none';
+            const resultsCard = document.createElement('div');
+            resultsCard.className = 'results-card mb-8';
+            const percentage = (correct / currentQuestions.length) * 100;
+            
+            let message = percentage === 100 ? '¡Excelente! Dominio perfecto.' : 
+                          percentage >= 80 ? '¡Muy bien!' : 
+                          percentage >= 60 ? 'Bien. Continúa practicando.' : 'Necesitas revisar el material.';
+
+            resultsCard.innerHTML = `
+                <h2 class="serif italic text-3xl mb-4">Resultados</h2>
+                <div class="score-display">${correct}/${currentQuestions.length}</div>
+                <p class="text-xl mt-4 mb-8">${message}</p>
+                <div class="flex flex-col md:flex-row gap-4 justify-center">
+                    <button onclick="location.reload()" class="submit-btn">Intentar de Nuevo</button>
+                    <a href="../curso.html" class="submit-btn flex items-center justify-center" style="background: #b08d57;">Volver a la Malla Curricular</a>
+                </div>
+            `;
+            const wrapper = document.getElementById('questionsWrapper');
+            wrapper.insertBefore(resultsCard, wrapper.firstChild);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        document.getElementById('submitBtn').addEventListener('click', submitQuiz);
+        loadLesson();
+    </script>
+</body>
+</html>
