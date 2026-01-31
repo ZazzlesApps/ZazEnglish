@@ -9,15 +9,9 @@
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #fcfaf7; color: #1c1c1c; margin: 0; }
         h1, h2, .serif { font-family: 'Playfair Display', serif; }
-        
         .bg-navy { background-color: #16253b; }
         .gold-accent { color: #b08d57; }
-        
-        /* Hero Section Styling */
-        .hero-gradient {
-            background: linear-gradient(180deg, #ffffff 0%, #fcfaf7 100%);
-        }
-
+        .hero-gradient { background: linear-gradient(180deg, #ffffff 0%, #fcfaf7 100%); }
         .cta-button {
             background-color: #16253b;
             color: #fcfaf7;
@@ -29,22 +23,18 @@
             font-weight: 600;
             cursor: pointer;
         }
-
         .cta-button:hover {
             background-color: transparent;
             color: #16253b;
             transform: translateY(-3px);
             box-shadow: 0 10px 20px rgba(0,0,0,0.05);
         }
-
         .decorative-line { height: 1px; width: 80px; background: #b08d57; margin: 2rem auto; }
-        
         footer { border-top: 1px solid #e7e5e4; }
     </style>
     <script>
         function accessCourse() {
             const pass = prompt("Por favor, introduce la contraseña de acceso:");
-            // Password is: 224396
             if (pass === "224396") {
                 window.location.href = "curso.html";
             } else if (pass !== null) {
@@ -56,16 +46,14 @@
 <body class="antialiased min-h-screen flex flex-col">
 
     <div class="bg-navy py-2 text-center">
-        <p class="text-[10px] tracking-[0.4em] uppercase text-amber-200 font-medium">
-            Portal Académico Oficial
-        </p>
+        <p class="text-[10px] tracking-[0.4em] uppercase text-amber-200 font-medium">Portal Académico Oficial</p>
     </div>
 
-    <nav class="py-8 px-6 md:px-12 flex justify-between items-center bg-white border-b border-stone-100">
-        <div class="text-xl md:text-2xl font-bold tracking-widest uppercase serif italic text-slate-800">
+    <nav class="py-6 md:py-8 px-6 md:px-12 flex flex-col md:flex-row justify-between items-center bg-white border-b border-stone-100 gap-4 md:gap-0">
+        <div class="text-xl md:text-2xl font-bold tracking-widest uppercase serif italic text-slate-800 text-center md:text-left">
             Zaz English Course
         </div>
-        <div class="text-right">
+        <div class="text-center md:text-right border-t border-stone-100 pt-4 md:pt-0 md:border-none w-full md:w-auto">
             <p class="text-[8px] uppercase tracking-[0.3em] font-bold text-slate-400 leading-none mb-1">Established</p>
             <p class="serif italic text-xs gold-accent">MMXXVI</p>
         </div>
@@ -74,36 +62,23 @@
     <main class="flex-grow flex items-center justify-center hero-gradient px-6 py-20">
         <div class="max-w-3xl w-full text-center">
             <span class="text-[10px] uppercase tracking-[0.5em] gold-accent font-bold mb-6 block">Bienvenido</span>
-            
             <h1 class="text-4xl md:text-6xl lg:text-7xl mb-8 serif italic leading-tight text-slate-900">
                 Domina el inglés de manera más eficiente.
             </h1>
-            
             <div class="decorative-line"></div>
-            
             <p class="text-slate-600 text-lg md:text-xl leading-relaxed mb-12 serif italic max-w-2xl mx-auto">
                 "Accede a nuestra malla curricular exclusiva y comienza tu camino hacia la fluidez hoy mismo."
             </p>
-
             <div class="flex flex-col items-center gap-6">
-                <button onclick="accessCourse()" class="cta-button px-12 py-5 rounded-sm">
-                    Ingresar al Curso
-                </button>
-                <p class="text-[10px] uppercase tracking-widest text-stone-400 font-semibold">
-                    Se requiere contraseña de estudiante
-                </p>
+                <button onclick="accessCourse()" class="cta-button px-12 py-5 rounded-sm">Ingresar al Curso</button>
+                <p class="text-[10px] uppercase tracking-widest text-stone-400 font-semibold">Se requiere contraseña de estudiante</p>
             </div>
         </div>
     </main>
 
     <footer class="bg-white py-16 text-center">
-        <div class="serif italic text-2xl text-slate-500 mb-2 font-medium">
-            ZazEnglishCourse.com
-        </div>
-        <p class="text-[10px] uppercase tracking-[0.3em] text-slate-400">
-            © 2026 Zaz English Course • All Rights Reserved
-        </p>
+        <div class="serif italic text-2xl text-slate-500 mb-2 font-medium">Zaz English Course</div>
+        <p class="text-[10px] uppercase tracking-[0.3em] text-slate-400">© 2026 Zaz English Course • All Rights Reserved</p>
     </footer>
-
 </body>
 </html>
