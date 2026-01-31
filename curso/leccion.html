@@ -19,6 +19,7 @@
         .option-btn.selected { border-color: #0a192f; background: #f8f9fa; }
         .option-btn.correct { border-color: #16a34a; background: #f0fdf4; color: #166534; }
         .option-btn.incorrect { border-color: #dc2626; background: #fef2f2; color: #991b1b; }
+        .option-btn:disabled { cursor: not-allowed; }
         .submit-btn { background: #0a192f; color: white; padding: 1rem 2.5rem; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; letter-spacing: 0.05em; transition: all 0.2s ease; text-transform: uppercase; font-size: 0.875rem; }
         .submit-btn:hover { background: #b08d57; }
         .submit-btn:disabled { background: #d1d5db; cursor: not-allowed; }
@@ -36,17 +37,10 @@
 </head>
 <body class="antialiased min-h-screen flex flex-col">
     <div class="bg-navy py-1.5 text-center"><p class="text-[9px] tracking-[0.4em] uppercase text-yellow-100/80 font-medium">Portal de Estudiantes</p></div>
-    
-    <nav class="py-6 px-6 md:px-12 flex flex-col md:flex-row justify-between items-center border-b border-stone-200 bg-white gap-4 md:gap-0">
-        <div class="text-xl md:text-2xl font-bold tracking-widest uppercase serif italic text-slate-800 text-center md:text-left">
-            Zaz English Course
-        </div>
-        <div class="text-center md:text-right border-t border-stone-100 pt-4 md:pt-0 md:border-none w-full md:w-auto">
-            <p class="text-[8px] uppercase tracking-[0.3em] font-bold text-slate-400 leading-none mb-1">Established</p>
-            <p class="serif italic text-xs gold-accent">MMXXVI</p>
-        </div>
+    <nav class="py-6 px-6 md:px-12 flex justify-between items-center border-b border-stone-200 bg-white">
+        <div class="text-xl md:text-2xl font-bold tracking-widest uppercase serif italic text-slate-800">Zaz English Course</div>
+        <div class="text-right"><p class="text-[8px] uppercase tracking-[0.3em] font-bold text-slate-400 leading-none mb-1">Established</p><p class="serif italic text-xs gold-accent">MMXXVI</p></div>
     </nav>
-
     <main class="max-w-4xl mx-auto w-full px-6 py-12 flex-grow">
         <div class="mb-10">
             <a href="../curso.html" class="back-link text-[10px] uppercase font-bold text-slate-400 flex items-center gap-2">
@@ -72,7 +66,121 @@
     </footer>
 
     <script>
-        // ... (Remaining JavaScript remains the same as provided in your file)
+        let currentQuestions = [];
+        let userAnswers = [];
+        let isSubmitted = false;
+
+        async function loadLesson() {
+            const params = new URLSearchParams(window.location.search);
+            const lessonId = params.get('id');
+            if (!lessonId) return;
+
+            // Update Header Title
+            const displayTitle = lessonId.replace('leccion', 'Lección ').replace('.', '.');
+            document.getElementById('lessonTitle').textContent = `Sección 1 • ${displayTitle}`;
+
+            try {
+                const response = await fetch('../data/questions.json');
+                const allData = await response.json();
+                currentQuestions = allData[lessonId];
+                userAnswers = new Array(currentQuestions.length).fill(null);
+                renderQuestions();
+            } catch (e) {
+                console.error("Error loading questions:", e);
+            }
+        }
+
+        function renderQuestions() {
+            const wrapper = document.getElementById('questionsWrapper');
+            wrapper.innerHTML = '';
+            currentQuestions.forEach((q, index) => {
+                const card = document.createElement('div');
+                card.className = 'question-card';
+                card.innerHTML = `
+                    <h3 class="text-xl font-semibold mb-4">${index + 1}. ${q.question}</h3>
+                    <div class="options">
+                        ${q.options.map((option, optIndex) => `
+                            <button class="option-btn" data-question="${index}" data-option="${optIndex}" onclick="selectOption(${index}, ${optIndex})">
+                                ${String.fromCharCode(65 + optIndex)}) ${option}
+                            </button>
+                        `).join('')}
+                    </div>
+                    <div class="feedback" id="feedback-${index}"></div>`;
+                wrapper.appendChild(card);
+            });
+            updateProgress();
+        }
+
+        function selectOption(qIdx, oIdx) {
+            if (isSubmitted) return;
+            userAnswers[qIdx] = oIdx;
+            const buttons = document.querySelectorAll(`[data-question="${qIdx}"]`);
+            buttons.forEach(btn => btn.classList.remove('selected'));
+            buttons[oIdx].classList.add('selected');
+            updateProgress();
+            document.getElementById('submitBtn').disabled = !userAnswers.every(a => a !== null);
+        }
+
+        function updateProgress() {
+            const answered = userAnswers.filter(a => a !== null).length;
+            const percentage = (answered / currentQuestions.length) * 100;
+            document.getElementById('progressFill').style.width = percentage + '%';
+            document.getElementById('questionCounter').textContent = `Pregunta ${answered} de ${currentQuestions.length} respondidas`;
+        }
+
+        function submitQuiz() {
+            if (isSubmitted) return;
+            isSubmitted = true;
+            let correctCount = 0;
+
+            currentQuestions.forEach((q, index) => {
+                const buttons = document.querySelectorAll(`[data-question="${index}"]`);
+                const feedback = document.getElementById(`feedback-${index}`);
+                buttons.forEach((btn, optIndex) => {
+                    btn.disabled = true;
+                    if (optIndex === q.correct) btn.classList.add('correct');
+                    if (optIndex === userAnswers[index] && userAnswers[index] !== q.correct) btn.classList.add('incorrect');
+                });
+
+                if (userAnswers[index] === q.correct) {
+                    correctCount++;
+                    feedback.className = 'feedback correct';
+                    feedback.textContent = '✓ Correcto';
+                } else {
+                    feedback.className = 'feedback incorrect';
+                    feedback.textContent = `✗ Incorrecto. La respuesta correcta es: ${q.options[q.correct]}`;
+                }
+            });
+
+            showResults(correctCount);
+        }
+
+        function showResults(correct) {
+            document.getElementById('navigationControls').style.display = 'none';
+            const resultsCard = document.createElement('div');
+            resultsCard.className = 'results-card mb-8';
+            const percentage = (correct / currentQuestions.length) * 100;
+            
+            let message = percentage === 100 ? '¡Excelente! Dominio perfecto.' : 
+                          percentage >= 80 ? '¡Muy bien!' : 
+                          percentage >= 60 ? 'Bien. Continúa practicando.' : 'Necesitas revisar el material.';
+
+            resultsCard.innerHTML = `
+                <h2 class="serif italic text-3xl mb-4">Resultados</h2>
+                <div class="score-display">${correct}/${currentQuestions.length}</div>
+                <p class="text-xl mt-4 mb-8">${message}</p>
+                <div class="flex flex-col md:flex-row gap-4 justify-center">
+                    <button onclick="location.reload()" class="submit-btn">Intentar de Nuevo</button>
+                    <a href="../curso.html" class="submit-btn flex items-center justify-center" style="background: #b08d57;">Volver a la Malla Curricular</a>
+                </div>
+            `;
+            const wrapper = document.getElementById('questionsWrapper');
+            wrapper.insertBefore(resultsCard, wrapper.firstChild);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        document.getElementById('submitBtn').addEventListener('click', submitQuiz);
+        loadLesson();
     </script>
 </body>
 </html>
